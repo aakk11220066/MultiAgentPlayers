@@ -74,6 +74,7 @@ class Player(AbstractPlayer):
         self.opp_loc = pos
         if pos in self.fruits.keys():
             self.fruits.pop(pos)
+        self.decrease_fruit_turns()
         raise NotImplementedError
 
     def update_fruits(self, fruits_on_board_dict):
@@ -89,6 +90,10 @@ class Player(AbstractPlayer):
 
     ########## helper functions in class ##########
     # TODO: add here helper functions in class, if needed
+    def decrease_fruit_turns(self):
+        self.fruits_turns -= 1
+        if self.fruits_turns == 0:
+            self.fruits = {}
 
     ########## helper functions for MiniMax algorithm ##########
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
@@ -120,8 +125,8 @@ class Player(AbstractPlayer):
             new_state.opp_loc = new_loc
         if new_loc in state.fruits.keys():
             new_state.fruits.pop(new_loc)
+        new_state.decrease_fruit_turns()
         return new_state
 
-
-def hueristic(self, state):
-    pass
+    def hueristic(self, state):
+        pass
