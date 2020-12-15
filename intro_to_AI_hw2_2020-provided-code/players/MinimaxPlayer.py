@@ -3,6 +3,7 @@ MiniMax Player
 """
 from players.AbstractPlayer import AbstractPlayer
 from SearchAlgos import MiniMax
+from utils import get_directions
 
 
 # TODO: you can import more modules, if needed
@@ -18,7 +19,10 @@ class Player(AbstractPlayer):
         self.opp_loc = (-1, -1)
         self.fruits = {}
         self.board = []
+        self.board_height = 0
+        self.board_width = 0
         self.minimax = MiniMax(self.utility, self.succ, self.perform_move)
+        self.fruits_turns = 0
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -29,6 +33,9 @@ class Player(AbstractPlayer):
         No output is expected.
         """
         self.board = board
+        self.board_height = len(board)
+        self.board_width = len(board[0])
+        self.fruits_turns = self.board_height if self.board_height < self.board_width else self.board_width
         # Get squares classes
         row_index = 0
         col_index = 0
@@ -90,13 +97,31 @@ class Player(AbstractPlayer):
             return self.hueristic(state)
         pass
 
-    def succ(self, state):
+    def succ(self, state, maximizing_player):
+        succs = []
+        for direction in get_directions():
+            succs.append(self.perform_move(state, direction, maximizing_player))
+        return succs
 
-        pass
+    def perform_move(self, state, direction, maximizing_player):
+        assert (isinstance(state, Player))
+        new_state = state
+        loc = state.my_loc if maximizing_player else state.opp_loc
+        new_loc = loc + direction
+        if new_loc[0] < 0 or new_loc[0] > (state.board_height - 1) or new_loc[1] < 0 or new_loc[1] > (
+                state.board_width - 1):
+            return None
+        if new_loc in state.greys:
+            return None
+        new_state.greys.add(new_loc)
+        if maximizing_player:
+            new_state.my_loc = new_loc
+        else:
+            new_state.opp_loc = new_loc
+        if new_loc in state.fruits.keys():
+            new_state.fruits.pop(new_loc)
+        return new_state
 
-    def perform_move(self, state, maximizing_player):
 
-        pass
-
-    def hueristic(self, state):
-        pass
+def hueristic(self, state):
+    pass
