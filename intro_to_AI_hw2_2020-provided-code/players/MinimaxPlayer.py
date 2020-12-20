@@ -23,6 +23,8 @@ class Player(AbstractPlayer):
         self.board_width = 0
         self.minimax = MiniMax(self.utility, self.succ, self.perform_move)
         self.fruits_turns = 0
+        self.my_points = 0
+        self.opp_points = 0
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -60,7 +62,7 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         # TODO: erase the following line and implement this function.
-
+        return self.minimax.search(self, 102937102937120937120, True)[1]
         raise NotImplementedError
 
     def set_rival_move(self, pos):
@@ -73,9 +75,9 @@ class Player(AbstractPlayer):
         self.greys.add(pos)
         self.opp_loc = pos
         if pos in self.fruits.keys():
+            self.opp_points += self.fruits[pos]
             self.fruits.pop(pos)
         self.decrease_fruit_turns()
-        raise NotImplementedError
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
@@ -97,15 +99,19 @@ class Player(AbstractPlayer):
 
     ########## helper functions for MiniMax algorithm ##########
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
-    def utility(self, state, heuristics):
+    def utility(self, state, heuristics, maximizing_player):
+        assert isinstance(state, Player)
         if heuristics:
             return self.hueristic(state)
-        pass
+        if maximizing_player:
+            return state.my_points - state.opp_points - self.penalty_score
+        return state.my_points - state.opp_points + self.penalty_score
 
     def succ(self, state, maximizing_player):
         succs = []
         for direction in get_directions():
             succs.append(self.perform_move(state, direction, maximizing_player))
+
         return succs
 
     def perform_move(self, state, direction, maximizing_player):
@@ -124,9 +130,14 @@ class Player(AbstractPlayer):
         else:
             new_state.opp_loc = new_loc
         if new_loc in state.fruits.keys():
+            if maximizing_player:
+                new_state.my_points += new_state.fruits[new_loc]
+            else:
+                new_state.opp_points += new_state.fruits[new_loc]
             new_state.fruits.pop(new_loc)
         new_state.decrease_fruit_turns()
         return new_state
 
     def hueristic(self, state):
+        return 0
         pass
