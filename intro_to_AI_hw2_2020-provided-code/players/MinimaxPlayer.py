@@ -4,10 +4,11 @@ MiniMax Player
 from players.AbstractPlayer import AbstractPlayer
 from SearchAlgos import MiniMax
 from utils import get_directions
+import copy
 
 
 # TODO: you can import more modules, if needed
-
+import random
 
 class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
@@ -62,7 +63,10 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         # TODO: erase the following line and implement this function.
-        return self.minimax.search(self, 102937102937120937120, True)[1]
+        a = self.minimax.search(self, 3, True)
+        print(a[0])
+        print(a[1])
+        return a[1]
         raise NotImplementedError
 
     def set_rival_move(self, pos):
@@ -116,7 +120,7 @@ class Player(AbstractPlayer):
 
     def perform_move(self, state, direction, maximizing_player):
         assert (isinstance(state, Player))
-        new_state = state
+        new_state = copy.deepcopy(state)
         loc = state.my_loc if maximizing_player else state.opp_loc
         new_loc = loc + direction
         if new_loc[0] < 0 or new_loc[0] > (state.board_height - 1) or new_loc[1] < 0 or new_loc[1] > (
@@ -139,5 +143,5 @@ class Player(AbstractPlayer):
         return new_state
 
     def hueristic(self, state):
-        return 0
+        return random.randint(0,2)
         pass
