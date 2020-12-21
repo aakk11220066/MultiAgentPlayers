@@ -6,9 +6,9 @@ from SearchAlgos import MiniMax
 from utils import get_directions
 import copy
 
-
 # TODO: you can import more modules, if needed
 import random
+
 
 class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
@@ -41,11 +41,11 @@ class Player(AbstractPlayer):
         self.fruits_turns = self.board_height if self.board_height < self.board_width else self.board_width
         # Get squares classes
         row_index = 0
-        col_index = 0
         for row in board:
+            col_index = 0
             for col in row:
                 if col == 0:
-                    continue
+                    pass
                 elif col == -1:
                     self.greys.add((row_index, col_index))
                 elif col == 1:
@@ -54,6 +54,8 @@ class Player(AbstractPlayer):
                     self.opp_loc = (row_index, col_index)
                 else:
                     self.fruits[(row_index, col_index)] = col
+                col_index += 1
+            row_index += 1
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -64,10 +66,18 @@ class Player(AbstractPlayer):
         """
         # TODO: erase the following line and implement this function.
         a = self.minimax.search(self, 3, True)
-        print(a[0])
-        print(a[1])
+        new_loc = (a[1][0] + self.my_loc[0], a[1][1] + self.my_loc[1])
+        if new_loc in self.greys:
+            return None
+        self.greys.add(new_loc)
+        self.my_loc = new_loc
+        if new_loc in self.fruits.keys():
+            self.my_points += self.fruits[new_loc]
+            self.fruits.pop(new_loc)
+        self.decrease_fruit_turns()
+        print(self.board)
+        print(a)
         return a[1]
-        raise NotImplementedError
 
     def set_rival_move(self, pos):
         """Update your info, given the new position of the rival.
@@ -96,6 +106,9 @@ class Player(AbstractPlayer):
 
     ########## helper functions in class ##########
     # TODO: add here helper functions in class, if needed
+    def __str__(self):
+        return 'My Location : ' + str(self.my_loc) + '\n' + 'Opp Location : ' + str(self.opp_loc)
+
     def decrease_fruit_turns(self):
         self.fruits_turns -= 1
         if self.fruits_turns == 0:
@@ -143,5 +156,8 @@ class Player(AbstractPlayer):
         return new_state
 
     def hueristic(self, state):
-        return random.randint(0,2)
-        pass
+        score = state.my_points - state.opp_points
+        for (loc_x, loc_y) in state.fruits:
+            if (loc_x + loc_y - state.my_loc[0] - state.my_loc[1]) <= state.fruits_turns:
+                score += state.fruits[(loc_x, loc_y)]
+        return score
