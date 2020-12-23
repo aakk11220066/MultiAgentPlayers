@@ -35,6 +35,7 @@ class MiniMax(SearchAlgos):
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
         succs = self.succ(state, maximizing_player)
+        # print(succs[0])
         if succs == [None, None, None, None]:
             return self.utility(state, False, maximizing_player), (0, 0)
         if depth < 0:
@@ -53,7 +54,8 @@ class MiniMax(SearchAlgos):
                     max_score = (res[0], get_directions()[index])
                 index += 1
             if empty == 4:
-                return self.utility(state, False), (0, 0)
+                return self.utility(state, False, maximizing_player), (0, 0)
+            # print(max_score)
             return max_score
         else:
             min_score = (np.inf, (0, 0))
@@ -69,7 +71,8 @@ class MiniMax(SearchAlgos):
                     min_score = (res[0], None)
                 index += 1
             if empty == 4:
-                return self.utility(state, False), (0, 0)
+                return self.utility(state, False, maximizing_player), (0, 0)
+            # print(min_score)
             return min_score
 
         # TODO: erase the following line and implement this function.

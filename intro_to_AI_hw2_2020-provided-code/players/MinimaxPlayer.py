@@ -56,6 +56,8 @@ class Player(AbstractPlayer):
                     self.fruits[(row_index, col_index)] = col
                 col_index += 1
             row_index += 1
+        self.greys.add(self.my_loc)
+        self.greys.add(self.opp_loc)
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -75,8 +77,6 @@ class Player(AbstractPlayer):
             self.my_points += self.fruits[new_loc]
             self.fruits.pop(new_loc)
         self.decrease_fruit_turns()
-        print(self.board)
-        print(a)
         return a[1]
 
     def set_rival_move(self, pos):
@@ -107,7 +107,8 @@ class Player(AbstractPlayer):
     ########## helper functions in class ##########
     # TODO: add here helper functions in class, if needed
     def __str__(self):
-        return 'My Location : ' + str(self.my_loc) + '\n' + 'Opp Location : ' + str(self.opp_loc)
+        return 'My Location : ' + str(self.my_loc) + '\n' + 'Opp Location : ' + str(self.opp_loc) + '\n' + str(
+            self.hueristic(self))
 
     def decrease_fruit_turns(self):
         self.fruits_turns -= 1
@@ -128,14 +129,13 @@ class Player(AbstractPlayer):
         succs = []
         for direction in get_directions():
             succs.append(self.perform_move(state, direction, maximizing_player))
-
         return succs
 
     def perform_move(self, state, direction, maximizing_player):
         assert (isinstance(state, Player))
         new_state = copy.deepcopy(state)
         loc = state.my_loc if maximizing_player else state.opp_loc
-        new_loc = loc + direction
+        new_loc = (loc[0] + direction[0], loc[1] + direction[1])
         if new_loc[0] < 0 or new_loc[0] > (state.board_height - 1) or new_loc[1] < 0 or new_loc[1] > (
                 state.board_width - 1):
             return None
