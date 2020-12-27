@@ -7,7 +7,7 @@ from utils import get_directions
 import copy
 
 # TODO: you can import more modules, if needed
-import random
+import time
 
 
 class Player(AbstractPlayer):
@@ -67,7 +67,8 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         # TODO: erase the following line and implement this function.
-        a = self.minimax.search(self, 3, True)
+        start = time.time()
+        a = self.minimax.search(self, 8, True)
         new_loc = (a[1][0] + self.my_loc[0], a[1][1] + self.my_loc[1])
         if new_loc in self.greys:
             return None
@@ -76,6 +77,7 @@ class Player(AbstractPlayer):
         if new_loc in self.fruits.keys():
             self.my_points += self.fruits[new_loc]
             self.fruits.pop(new_loc)
+
         self.decrease_fruit_turns()
         return a[1]
 
@@ -111,6 +113,9 @@ class Player(AbstractPlayer):
             self.hueristic(self))
 
     def decrease_fruit_turns(self):
+        if self.fruits_turns == 0:
+            self.fruits = {}
+            return
         self.fruits_turns -= 1
         if self.fruits_turns == 0:
             self.fruits = {}
