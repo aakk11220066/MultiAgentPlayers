@@ -5,6 +5,7 @@ from utils import ALPHA_VALUE_INIT, BETA_VALUE_INIT
 # TODO: you can import more modules, if needed
 import numpy as np
 from utils import get_directions
+import time
 
 
 class SearchAlgos:
@@ -34,11 +35,13 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
+        if time.time() > state.turn_end_time:
+            return 'interrupted'
         succs = self.succ(state, maximizing_player)
         # print(succs[0])
         if succs == [None, None, None, None]:
             return self.utility(state, False, maximizing_player), (0, 0)
-        if depth < 0:
+        if depth == 0:
             return self.utility(state, True, maximizing_player), (0, 0)
         if maximizing_player:
             max_score = (-np.inf, (0, 0))
@@ -50,6 +53,8 @@ class MiniMax(SearchAlgos):
                     empty += 1
                     continue
                 res = self.search(succ, depth - 1, False)
+                if res == 'interrupted':
+                    return 'interrupted'
                 if res[0] > max_score[0]:
                     max_score = (res[0], get_directions()[index])
                 index += 1
@@ -67,6 +72,8 @@ class MiniMax(SearchAlgos):
                     empty += 1
                     continue
                 res = self.search(succ, depth - 1, True)
+                if res == 'interrupted':
+                    return 'interrupted'
                 if res[0] < min_score[0]:
                     min_score = (res[0], None)
                 index += 1
@@ -74,9 +81,6 @@ class MiniMax(SearchAlgos):
                 return self.utility(state, False, maximizing_player), (0, 0)
             # print(min_score)
             return min_score
-
-        # TODO: erase the following line and implement this function.
-        raise NotImplementedError
 
 
 class AlphaBeta(SearchAlgos):

@@ -26,6 +26,7 @@ class Player(AbstractPlayer):
         self.fruits_turns = 0
         self.my_points = 0
         self.opp_points = 0
+        self.turn_end_time = 0
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -67,9 +68,17 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         # TODO: erase the following line and implement this function.
-        start = time.time()
-        a = self.minimax.search(self, 8, True)
-        new_loc = (a[1][0] + self.my_loc[0], a[1][1] + self.my_loc[1])
+        self.turn_end_time = time.time() + time_limit - 0.01
+        depth = 1
+        move = None
+        while True:
+            res = self.minimax.search(self, depth, True)
+            depth += 1
+            if res == 'interrupted':
+                break
+            move = res
+        print(depth)
+        new_loc = (move[1][0] + self.my_loc[0], move[1][1] + self.my_loc[1])
         if new_loc in self.greys:
             return None
         self.greys.add(new_loc)
@@ -79,7 +88,8 @@ class Player(AbstractPlayer):
             self.fruits.pop(new_loc)
 
         self.decrease_fruit_turns()
-        return a[1]
+        print(time.time() - self.turn_end_time)
+        return move[1]
 
     def set_rival_move(self, pos):
         """Update your info, given the new position of the rival.
