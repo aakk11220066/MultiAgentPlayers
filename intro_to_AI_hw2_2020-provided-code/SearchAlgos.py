@@ -58,9 +58,6 @@ class MiniMax(SearchAlgos):
                 if res[0] > max_score[0]:
                     max_score = (res[0], get_directions()[index])
                 index += 1
-            if empty == 4:
-                return self.utility(state, False, maximizing_player), (0, 0)
-            # print(max_score)
             return max_score
         else:
             min_score = (np.inf, (0, 0))
@@ -77,9 +74,6 @@ class MiniMax(SearchAlgos):
                 if res[0] < min_score[0]:
                     min_score = (res[0], None)
                 index += 1
-            if empty == 4:
-                return self.utility(state, False, maximizing_player), (0, 0)
-            # print(min_score)
             return min_score
 
 
@@ -94,5 +88,53 @@ class AlphaBeta(SearchAlgos):
         :param: beta: beta value
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
+
+        if time.time() > state.turn_end_time:
+            return 'interrupted'
+        succs = self.succ(state, maximizing_player)
+        # print(succs[0])
+        if succs == [None, None, None, None]:
+            return self.utility(state, False, maximizing_player), (0, 0)
+        if depth == 0:
+            return self.utility(state, True, maximizing_player), (0, 0)
+        if maximizing_player:
+            max_score = (-np.inf, (0, 0))
+            index = 0
+            empty = 0
+            for succ in succs:
+                if not succ:
+                    index += 1
+                    empty += 1
+                    continue
+                res = self.search(succ, depth - 1, False)
+                if res == 'interrupted':
+                    return 'interrupted'
+                if res[0] > max_score[0]:
+                    max_score = (res[0], get_directions()[index])
+                alpha = max(max_score[0], alpha)
+                if max_score[0] >= beta:
+                    return np.inf
+                index += 1
+            return max_score
+        else:
+            min_score = (np.inf, (0, 0))
+            index = 0
+            empty = 0
+            for succ in succs:
+                if not succ:
+                    index += 1
+                    empty += 1
+                    continue
+                res = self.search(succ, depth - 1, True)
+                if res == 'interrupted':
+                    return 'interrupted'
+                if res[0] < min_score[0]:
+                    min_score = (res[0], None)
+                beta = min(beta, min_score[0])
+                if min_score[0] <= alpha:
+                    return -np.inf
+                index += 1
+            return min_score
+
         # TODO: erase the following line and implement this function.
         raise NotImplementedError

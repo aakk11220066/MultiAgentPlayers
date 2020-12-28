@@ -1,14 +1,25 @@
 """
 MiniMax Player with AlphaBeta pruning
 """
-from players.AbstractPlayer import AbstractPlayer
-#TODO: you can import more modules, if needed
+from ..players.AbstractPlayer import AbstractPlayer
+from ..SearchAlgos import AlphaBeta
+from ..utils import get_directions
+# TODO: return imports to original absolute format
 
 
 class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
         AbstractPlayer.__init__(self, game_time, penalty_score) # keep the inheritance of the parent's (AbstractPlayer) __init__()
-        #TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
+
+        self.greys = set()
+        self.my_loc = (-1, -1)
+        self.opp_loc = (-1, -1)
+        self.fruits = {}
+        self.board = []
+        self.board_height = 0
+        self.board_width = 0
+        self.alphabeta = AlphaBeta(self.utility, self.succ, self.perform_move)
+        self.fruits_turns = 0
 
 
     def set_game_params(self, board):
@@ -19,8 +30,26 @@ class Player(AbstractPlayer):
             - board: np.array, a 2D matrix of the board.
         No output is expected.
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+
+        self.board = board
+        self.board_height = len(board)
+        self.board_width = len(board[0])
+        self.fruits_turns = min(self.board_height, self.board_width)
+        # Get squares classes
+        row_index = 0
+        col_index = 0
+        for row in board:
+            for col in row:
+                if col == 0:
+                    continue
+                elif col == -1:
+                    self.greys.add((row_index, col_index))
+                elif col == 1:
+                    self.my_loc = (row_index, col_index)
+                elif col == 2:
+                    self.opp_loc = (row_index, col_index)
+                else:
+                    self.fruits[(row_index, col_index)] = col
     
 
     def make_move(self, time_limit, players_score):
