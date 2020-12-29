@@ -67,15 +67,17 @@ if __name__ == "__main__":
     print('Players have', args.move_time, 'seconds to make a signle move.')
     print('Each player has', game_time, 'seconds to play in a game (global game time, sum of all moves).')
 
-    # create game with the given args
-    game = GameWrapper(board[0], board[1], board[2], player_1=player_1, player_2=player_2,
-                       terminal_viz=args.terminal_viz,
-                       print_game_in_terminal=not args.dont_print_game,
-                       time_to_make_a_move=args.move_time,
-                       game_time=game_time,
-                       penalty_score=args.penalty_score,
-                       max_fruit_score=args.max_fruit_score,
-                       max_fruit_time=args.max_fruit_time)
+    for i in range(100):
+        # create game with the given args
+        game = GameWrapper(board[0], board[1], board[2], player_1=player_1, player_2=player_2,
+                           terminal_viz=args.terminal_viz,
+                           print_game_in_terminal=not args.dont_print_game,
+                           time_to_make_a_move=args.move_time,
+                           game_time=game_time,
+                           penalty_score=args.penalty_score,
+                           max_fruit_score=args.max_fruit_score,
+                           max_fruit_time=args.max_fruit_time)
 
-    # start playing!
-    game.start_game()
+        # start playing!
+        game.start_game()
+    print(f"ab won {GameWrapper.wins[1]} times, minimax won {GameWrapper.wins[0]} times, ratio = {wins[1]/wins[0]}")

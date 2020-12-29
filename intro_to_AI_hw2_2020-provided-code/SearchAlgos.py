@@ -106,14 +106,14 @@ class AlphaBeta(SearchAlgos):
                     index += 1
                     empty += 1
                     continue
-                res = self.search(succ, depth - 1, False)
+                res = self.search(succ, depth - 1, False, alpha=alpha, beta=beta)
                 if res == 'interrupted':
                     return 'interrupted'
                 if res[0] > max_score[0]:
                     max_score = (res[0], get_directions()[index])
                 alpha = max(max_score[0], alpha)
                 if max_score[0] >= beta:
-                    return np.inf
+                    return np.inf, (0,0)
                 index += 1
             return max_score
         else:
@@ -125,14 +125,14 @@ class AlphaBeta(SearchAlgos):
                     index += 1
                     empty += 1
                     continue
-                res = self.search(succ, depth - 1, True)
+                res = self.search(succ, depth - 1, True, alpha=alpha, beta=beta)
                 if res == 'interrupted':
                     return 'interrupted'
                 if res[0] < min_score[0]:
                     min_score = (res[0], None)
                 beta = min(beta, min_score[0])
                 if min_score[0] <= alpha:
-                    return -np.inf
+                    return -np.inf, None
                 index += 1
             return min_score
 

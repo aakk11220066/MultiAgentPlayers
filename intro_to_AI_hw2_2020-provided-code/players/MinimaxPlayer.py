@@ -77,6 +77,7 @@ class Player(AbstractPlayer):
             if res == 'interrupted':
                 break
             move = res
+        print(f"minimax depth = {depth}")
 
         new_loc = (move[1][0] + self.my_loc[0], move[1][1] + self.my_loc[1])
         if new_loc in self.greys:
@@ -88,7 +89,7 @@ class Player(AbstractPlayer):
             self.fruits.pop(new_loc)
 
         self.decrease_fruit_turns()
-        print(f"remaining turn time = {self.turn_end_time+0.01 - time.time()}")
+
         return move[1]
 
     def set_rival_move(self, pos):

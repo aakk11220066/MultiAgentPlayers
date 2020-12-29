@@ -3,6 +3,7 @@ import numpy as np
 import time
 import sys
 
+wins = [0,0]
 class GameWrapper:
     def __init__(self, size, block_positions, starts, player_1, player_2, 
                 terminal_viz, print_game_in_terminal, 
@@ -72,6 +73,8 @@ class GameWrapper:
                 winning_player = int(score_2 > score_1) + 1
                 messages = [f'    Player {winning_player} Won!', f'scores: {score_1}, {score_2}']
 
+            global wins
+            wins[winning_player-1] += 1
             self.pretty_print_end_game(messages)
 
     def play_turn(self, player_index):
