@@ -179,12 +179,29 @@ class Player(AbstractPlayer):
         return abs(loc1[0] - loc2[0]) + abs(loc1[1] - loc2[1])
 
     def hueristic(self, state, maximizing_player: bool):
-        fruit_weight = 0.1
+        # Need to be fine-tuned
+        sum_fruit_weight = 0.1
+        closest_fruit_weight = 0.3
+        blocked_opponent_weight = 0.07
 
-        score = state.my_points - state.opp_points
+        score = state.my_points - state.opp_points #heuristic 1
+
+        closest_fruit_dist = float("inf")
         for fruit_loc in state.fruits:
             if self.manhattanDistance(state.my_loc, fruit_loc) <= state.fruits_turns:
                 #print(f"I am at {self.my_loc}, fruit of value {state.fruits[fruit_loc]} is at {fruit_loc} with distance {self.manhattanDistance(self.my_loc, fruit_loc)}")
-                score += fruit_weight * 1 / (0.1 + self.manhattanDistance(state.my_loc, fruit_loc)) * state.fruits[
-                    fruit_loc]
+                score += sum_fruit_weight * 1 / (0.1 + self.manhattanDistance(state.my_loc, fruit_loc)) * state.fruits[
+                    fruit_loc] # heuristic 2
+                closest_fruit_dist = min(closest_fruit_dist, self.manhattanDistance(state.my_points, fruit_loc))
+
+        score += closest_fruit_weight/closest_fruit_dist # heuristic 3
+
+        for direction in get_directions():
+            opponent_neighbor = (self.opp_loc[0] + direction[0], self.opp_loc[1] + direction[1])
+            if opponent_neighbor[0] < 0 \
+                    or opponent_neighbor[0] > (state.board_height - 1) \
+                    or opponent_neighbor[1] < 0 \
+                    or opponent_neighbor[1] > (state.board_width - 1) \
+                    or opponent_neighbor in self.greys:
+                score += blocked_opponent_weight #heuristic 4
         return score
