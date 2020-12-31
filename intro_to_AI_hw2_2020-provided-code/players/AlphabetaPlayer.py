@@ -182,20 +182,22 @@ class Player(AbstractPlayer):
         # Need to be fine-tuned
         sum_fruit_weight = 0.1
         closest_fruit_weight = 0.3
-        blocked_opponent_weight = 0.07
+        relative_freedom_weight = 1
 
         score = state.my_points - state.opp_points #heuristic 1
 
         closest_fruit_dist = float("inf")
         for fruit_loc in state.fruits:
             if self.manhattanDistance(state.my_loc, fruit_loc) <= state.fruits_turns:
-                #print(f"I am at {self.my_loc}, fruit of value {state.fruits[fruit_loc]} is at {fruit_loc} with distance {self.manhattanDistance(self.my_loc, fruit_loc)}")
+                #print(f"I am at {self.my_loc}, fruit of value {state.fruits[fruit_loc]} is at {fruit_loc} with distance {self.manhattanDistance(self.my_loc, fruit_loc)} and remaining fruit turns {self.fruits_turns}")
                 score += sum_fruit_weight * 1 / (0.1 + self.manhattanDistance(state.my_loc, fruit_loc)) * state.fruits[
                     fruit_loc] # heuristic 2
-                closest_fruit_dist = min(closest_fruit_dist, self.manhattanDistance(state.my_points, fruit_loc))
+                closest_fruit_dist = min(closest_fruit_dist, self.manhattanDistance(state.my_loc, fruit_loc))
 
         score += closest_fruit_weight/closest_fruit_dist # heuristic 3
 
+        opp_freedom = 4
+        my_freedom = 4
         for direction in get_directions():
             opponent_neighbor = (self.opp_loc[0] + direction[0], self.opp_loc[1] + direction[1])
             if opponent_neighbor[0] < 0 \
@@ -203,5 +205,14 @@ class Player(AbstractPlayer):
                     or opponent_neighbor[1] < 0 \
                     or opponent_neighbor[1] > (state.board_width - 1) \
                     or opponent_neighbor in self.greys:
-                score += blocked_opponent_weight #heuristic 4
+                opp_freedom -= 1
+            my_neighbor = (self.my_loc[0] + direction[0], self.my_loc[1] + direction[1])
+            if my_neighbor[0] < 0 \
+                    or my_neighbor[0] > (state.board_height - 1) \
+                    or my_neighbor[1] < 0 \
+                    or my_neighbor[1] > (state.board_width - 1) \
+                    or my_neighbor in self.greys:
+                my_freedom -= 1
+        score += relative_freedom_weight*(my_freedom - opp_freedom)  # heuristic 4
+        print(f"my_freedom = {my_freedom}, opp_freedom = {opp_freedom}, score = {score}")
         return score
