@@ -77,7 +77,8 @@ class Player(AbstractPlayer):
             if res == 'interrupted':
                 break
             move = res
-        print(depth)
+        print(f"minimax depth = {depth}")
+
         new_loc = (move[1][0] + self.my_loc[0], move[1][1] + self.my_loc[1])
         if new_loc in self.greys:
             return None
@@ -88,7 +89,7 @@ class Player(AbstractPlayer):
             self.fruits.pop(new_loc)
 
         self.decrease_fruit_turns()
-        print(time.time() - self.turn_end_time)
+
         return move[1]
 
     def set_rival_move(self, pos):
@@ -103,7 +104,6 @@ class Player(AbstractPlayer):
         if pos in self.fruits.keys():
             self.opp_points += self.fruits[pos]
             self.fruits.pop(pos)
-        self.decrease_fruit_turns()
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
@@ -135,7 +135,7 @@ class Player(AbstractPlayer):
     def utility(self, state, heuristics, maximizing_player):
         assert isinstance(state, Player)
         if heuristics:
-            return self.hueristic(state)
+            return self.hueristic(state, maximizing_player=maximizing_player)
         if maximizing_player:
             return state.my_points - state.opp_points - self.penalty_score
         return state.my_points - state.opp_points + self.penalty_score
@@ -168,11 +168,16 @@ class Player(AbstractPlayer):
                 new_state.opp_points += new_state.fruits[new_loc]
             new_state.fruits.pop(new_loc)
         new_state.decrease_fruit_turns()
+
         return new_state
 
-    def hueristic(self, state):
+    def manhattanDistance(self, loc1, loc2):
+        return abs(loc1[0] - loc2[0]) + abs(loc1[1] - loc2[1])
+    def hueristic(self, state, maximizing_player: bool):
+        fruit_weight = 1
+
         score = state.my_points - state.opp_points
-        for (loc_x, loc_y) in state.fruits:
-            if (loc_x + loc_y - state.my_loc[0] - state.my_loc[1]) <= state.fruits_turns:
-                score += state.fruits[(loc_x, loc_y)]
+        for fruit_loc in state.fruits:
+            if self.manhattanDistance(state.my_loc, fruit_loc) <= state.fruits_turns:
+                score += fruit_weight*1/(0.1+self.manhattanDistance(state.my_loc, fruit_loc))*state.fruits[fruit_loc]
         return score
