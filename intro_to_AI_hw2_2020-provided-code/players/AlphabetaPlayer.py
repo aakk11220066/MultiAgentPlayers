@@ -214,5 +214,4 @@ class Player(AbstractPlayer):
                     or my_neighbor in self.greys:
                 my_freedom -= 1
         score += relative_freedom_weight*(my_freedom - opp_freedom)  # heuristic 4
-        print(f"my_freedom = {my_freedom}, opp_freedom = {opp_freedom}, score = {score}")
         return score

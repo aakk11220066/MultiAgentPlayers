@@ -7,6 +7,7 @@ from utils import get_directions
 # TODO: return imports to original absolute format
 import time
 import copy
+import numpy as np
 
 
 class Player(AbstractPlayer):
@@ -27,6 +28,8 @@ class Player(AbstractPlayer):
         self.opp_points = 0
         self.turn_end_time = 0
         self.reach = []
+        self.num_turns = 0
+        self.remaining_time = self.game_time
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -40,8 +43,8 @@ class Player(AbstractPlayer):
         self.board = board
         self.board_height = len(board)
         self.board_width = len(board[0])
-        self.reachable = 0
         self.fruits_turns = min(self.board_height, self.board_width)
+        self.reachable = 0
         # Get squares classes
         row_index = 0
         for row in board:
@@ -59,10 +62,8 @@ class Player(AbstractPlayer):
                     self.fruits[(row_index, col_index)] = col
                 col_index += 1
             row_index += 1
-
         self.greys.add(self.my_loc)
         self.greys.add(self.opp_loc)
-        print(self.count_reachables())
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -72,7 +73,15 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         # TODO: erase the following line and implement this function.
-        self.turn_end_time = time.time() + time_limit - 0.01
+        start = time.time()
+        num_turns = self.count_reachables()
+        if num_turns == 1:
+            turn_time_limit = self.remaining_time
+        else:
+            turn_time_limit = self.remaining_time * ((num_turns + 1) / (num_turns * num_turns))
+        turn_time_limit = min(turn_time_limit, time_limit)
+        # turn_time_limit = self.remaining_time / 2
+        self.turn_end_time = time.time() + turn_time_limit - 0.01
         depth = 1
         move = None
         while True:
@@ -81,7 +90,6 @@ class Player(AbstractPlayer):
             if res == 'interrupted':
                 break
             move = res
-        print(f"ab depth = {depth}")
 
         new_loc = (move[1][0] + self.my_loc[0], move[1][1] + self.my_loc[1])
         if new_loc in self.greys:
@@ -93,7 +101,9 @@ class Player(AbstractPlayer):
             self.fruits.pop(new_loc)
 
         self.decrease_fruit_turns()
-
+        self.num_turns -= 1
+        self.remaining_time -= (time.time() - start)
+        print(self.remaining_time)
         return move[1]
 
     def set_rival_move(self, pos):
@@ -127,6 +137,14 @@ class Player(AbstractPlayer):
         return 'My Location : ' + str(self.my_loc) + '\n' + 'Opp Location : ' + str(self.opp_loc) + '\n' + str(
             self.hueristic(self))
 
+    def decrease_fruit_turns(self):
+        if self.fruits_turns == 0:
+            self.fruits = {}
+            return
+        self.fruits_turns -= 1
+        if self.fruits_turns == 0:
+            self.fruits = {}
+
     def count_reachables(self):
         def flood_fill(row, col):
             if (row < 0) or (col < 0) or (row == self.board_height) or (col == self.board_width):
@@ -144,19 +162,7 @@ class Player(AbstractPlayer):
         col = self.my_loc[1]
         my_flood = flood_fill(row + 1, col) + flood_fill(row - 1, col) + flood_fill(row, col + 1) + flood_fill(
             row, col - 1)
-        row = self.opp_loc[0]
-        col = self.opp_loc[1]
-        opp_flood = flood_fill(row + 1, col) + flood_fill(row - 1, col) + flood_fill(row, col + 1) + flood_fill(
-            row, col - 1)
-        return my_flood + opp_flood
-
-    def decrease_fruit_turns(self):
-        if self.fruits_turns == 0:
-            self.fruits = {}
-            return
-        self.fruits_turns -= 1
-        if self.fruits_turns == 0:
-            self.fruits = {}
+        return my_flood
 
     ########## helper functions for AlphaBeta algorithm ##########
     def utility(self, state, heuristics, maximizing_player):
@@ -205,20 +211,22 @@ class Player(AbstractPlayer):
         # Need to be fine-tuned
         sum_fruit_weight = 0.1
         closest_fruit_weight = 0.3
-        blocked_opponent_weight = 0.07
+        relative_freedom_weight = 1
 
         score = state.my_points - state.opp_points  # heuristic 1
 
         closest_fruit_dist = float("inf")
         for fruit_loc in state.fruits:
             if self.manhattanDistance(state.my_loc, fruit_loc) <= state.fruits_turns:
-                # print(f"I am at {self.my_loc}, fruit of value {state.fruits[fruit_loc]} is at {fruit_loc} with distance {self.manhattanDistance(self.my_loc, fruit_loc)}")
+                # print(f"I am at {self.my_loc}, fruit of value {state.fruits[fruit_loc]} is at {fruit_loc} with distance {self.manhattanDistance(self.my_loc, fruit_loc)} and remaining fruit turns {self.fruits_turns}")
                 score += sum_fruit_weight * 1 / (0.1 + self.manhattanDistance(state.my_loc, fruit_loc)) * state.fruits[
                     fruit_loc]  # heuristic 2
-                closest_fruit_dist = min(closest_fruit_dist, self.manhattanDistance(state.my_points, fruit_loc))
+                closest_fruit_dist = min(closest_fruit_dist, self.manhattanDistance(state.my_loc, fruit_loc))
 
         score += closest_fruit_weight / closest_fruit_dist  # heuristic 3
 
+        opp_freedom = 4
+        my_freedom = 4
         for direction in get_directions():
             opponent_neighbor = (self.opp_loc[0] + direction[0], self.opp_loc[1] + direction[1])
             if opponent_neighbor[0] < 0 \
@@ -226,5 +234,13 @@ class Player(AbstractPlayer):
                     or opponent_neighbor[1] < 0 \
                     or opponent_neighbor[1] > (state.board_width - 1) \
                     or opponent_neighbor in self.greys:
-                score += blocked_opponent_weight  # heuristic 4
+                opp_freedom -= 1
+            my_neighbor = (self.my_loc[0] + direction[0], self.my_loc[1] + direction[1])
+            if my_neighbor[0] < 0 \
+                    or my_neighbor[0] > (state.board_height - 1) \
+                    or my_neighbor[1] < 0 \
+                    or my_neighbor[1] > (state.board_width - 1) \
+                    or my_neighbor in self.greys:
+                my_freedom -= 1
+        score += relative_freedom_weight * (my_freedom - opp_freedom)  # heuristic 4
         return score
