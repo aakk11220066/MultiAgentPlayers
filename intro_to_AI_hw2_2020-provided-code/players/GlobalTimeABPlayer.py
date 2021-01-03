@@ -74,8 +74,11 @@ class Player(AbstractPlayer):
         """
         # TODO: erase the following line and implement this function.
         start = time.time()
-        num_turns = self.count_reachables()
-        if num_turns == 1:
+        num_turns = min(self.count_reachables(True), self.count_reachables(False))
+        self.remaining_time -= (time.time() - start)
+        print(time.time() - start)
+        print(num_turns)
+        if num_turns <= 1:
             turn_time_limit = self.remaining_time
         else:
             turn_time_limit = self.remaining_time * ((num_turns + 1) / (num_turns * num_turns))
@@ -145,7 +148,7 @@ class Player(AbstractPlayer):
         if self.fruits_turns == 0:
             self.fruits = {}
 
-    def count_reachables(self):
+    def count_reachables(self, my):
         def flood_fill(row, col):
             if (row < 0) or (col < 0) or (row == self.board_height) or (col == self.board_width):
                 return 0
@@ -158,11 +161,15 @@ class Player(AbstractPlayer):
                 row, col - 1)
 
         self.reach = self.board.copy()
-        row = self.my_loc[0]
-        col = self.my_loc[1]
-        my_flood = flood_fill(row + 1, col) + flood_fill(row - 1, col) + flood_fill(row, col + 1) + flood_fill(
+        if my:
+            row = self.my_loc[0]
+            col = self.my_loc[1]
+        else:
+            row = self.opp_loc[0]
+            col = self.opp_loc[1]
+        flood = flood_fill(row + 1, col) + flood_fill(row - 1, col) + flood_fill(row, col + 1) + flood_fill(
             row, col - 1)
-        return my_flood
+        return flood
 
     ########## helper functions for AlphaBeta algorithm ##########
     def utility(self, state, heuristics, maximizing_player):
