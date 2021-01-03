@@ -76,8 +76,6 @@ class Player(AbstractPlayer):
         start = time.time()
         num_turns = min(self.count_reachables(True), self.count_reachables(False))
         self.remaining_time -= (time.time() - start)
-        print(time.time() - start)
-        print(num_turns)
         if num_turns <= 1:
             turn_time_limit = self.remaining_time
         else:
@@ -93,7 +91,18 @@ class Player(AbstractPlayer):
             if res == 'interrupted':
                 break
             move = res
-
+        if move is None:
+            for direction in get_directions():
+                loc = self.my_loc
+                new_loc = (loc[0] + direction[0], loc[1] + direction[1])
+                if new_loc[0] < 0 or new_loc[0] > (self.board_height - 1) or new_loc[1] < 0 or new_loc[1] > (
+                        self.board_width - 1):
+                    continue
+                if new_loc in self.greys:
+                    continue
+                print(direction)
+                move = (0, direction)
+                break
         new_loc = (move[1][0] + self.my_loc[0], move[1][1] + self.my_loc[1])
         if new_loc in self.greys:
             return None
